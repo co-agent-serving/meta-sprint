@@ -1,0 +1,27 @@
+# Serving Agent 配置示例
+# 用于 Qwen3-8B 模型的单机推理服务
+
+[model]
+name = "qwen3"
+variant = "8b"
+weights_path = "/data/models/qwen3-8b"
+
+[hardware]
+backend_type = "pypto"
+device_id = 0
+npus_per_node = 8
+nodes = 1
+
+[backend]
+codegen_level = "tile"
+use_cache = true
+optimize_for = "latency"
+
+[parallel]
+tensor_parallel_size = 1
+pipeline_parallel_size = 1
+
+[features]
+kv_cache = "paged"
+batching = "continuous"
+quantization = "none"

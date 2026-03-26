@@ -1,0 +1,49 @@
+//! PyPTO 后端算子实现
+//!
+//! 优化目标: {{ optimize_for }}
+//! 内核缓存: {{ use_cache }}
+
+use anyhow::Result;
+
+/// PyPTO 计算算子
+pub struct PyPTOComputeOps {
+    device_id: i32,
+    optimize_for: String,
+    use_cache: bool,
+}
+
+impl PyPTOComputeOps {
+    /// 创建新的 PyPTO 计算算子实例
+    pub fn new(device_id: i32) -> Result<Self> {
+        Ok(Self {
+            device_id,
+            optimize_for: "{{ optimize_for }}".to_string(),
+            use_cache: {{ use_cache }},
+        })
+    }
+
+    /// 矩阵乘法
+    pub fn matmul(&self, a: &[f32], b: &[f32], out: &mut [f32]) -> Result<()> {
+        // TODO: 调用 PyPTO 生成的 matmul 内核
+        Ok(())
+    }
+
+    /// RMS 归一化
+    pub fn rms_norm(&self, input: &[f32], weight: &[f32], eps: f32, out: &mut [f32]) -> Result<()> {
+        // TODO: 调用 PyPTO 生成的 rms_norm 内核
+        Ok(())
+    }
+
+    /// Flash Attention
+    pub fn flash_attention(
+        &self,
+        q: &[f32],
+        k: &[f32],
+        v: &[f32],
+        mask: &[f32],
+        out: &mut [f32],
+    ) -> Result<()> {
+        // TODO: 调用 PyPTO 生成的 flash_attention 内核
+        Ok(())
+    }
+}

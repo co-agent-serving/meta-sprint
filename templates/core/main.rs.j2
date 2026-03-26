@@ -1,0 +1,23 @@
+//! LLM 推理服务器主入口
+//!
+//! 模型: {{ model_name }}-{{ model_variant }}
+//! 设备: NPU {{ device_id }}
+
+use anyhow::Result;
+use tracing::{info, Level};
+
+fn main() -> Result<()> {
+    // 初始化日志
+    tracing_subscriber::fmt()
+        .with_max_level(Level::INFO)
+        .init();
+
+    info!("Starting {{ model_name }}-{{ model_variant }} LLM Server on NPU {{ device_id }}");
+
+    // TODO: 初始化模型、权重和推理引擎
+    // let config = load_config()?;
+    // let engine = Engine::new(config)?;
+    // engine.run()?;
+
+    Ok(())
+}

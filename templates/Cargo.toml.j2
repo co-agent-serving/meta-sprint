@@ -1,0 +1,28 @@
+[package]
+name = "{{ project_name }}"
+version = "{{ version }}"
+edition = "2021"
+
+[dependencies]
+# PyPTO 相关依赖（当后端为 pypto 时启用）
+{% if backend_type == "pypto" %}
+pypto-sys = { path = "../rustBindings/pypto-sys" }
+simpler-sys = { path = "../rustBindings/simpler-sys" }
+{% endif %}
+
+# Ascend NPU 绑定
+ascendcl-sys = { path = "../rustBindings/ascendcl-sys" }
+aclnn-sys = { path = "../rustBindings/aclnn-sys" }
+
+# Rust 标准库
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bin]]
+name = "llm_server"
+path = "src/main.rs"
