@@ -1,31 +1,95 @@
 # Serving Agent 设计文档
 
-## 项目概览
+## 文档导航
 
-**Serving Agent**：根据配置自动生成轻量级 LLM 推理服务
+本文档目录帮助你快速找到所需信息。
 
-- 核心特点：PyPTO 唯一后端、代码生成量 < 10000 行
-- 目标硬件：Ascend NPU
-- 支持部署：单机多卡、多机分布式
+### 📖 阅读顺序建议
 
-## 文档列表
+```
+新用户入门：
+1. 项目概述 ← （当前文档）
+2. project_vision.md     ← 了解为什么做这个项目
+3. 主仓库 README.md      ← 快速开始使用
 
-| 文档 | 说明 | 阅读目的 |
+深入理解：
+4. modules_analysis.md   ← 了解依赖模块和集成策略
+5. rust_implementation.md ← 参考现有的 Rust 实现
+```
+
+---
+
+## 📚 文档列表
+
+| 文档 | 类型 | 阅读目的 |
+|------|------|---------|
+| **[项目愿景](./project_vision.md)** | 🎯 战略层 | 了解问题定义、预期效果、与 PyPTO 的协同关系 |
+| **[模块分析](./modules_analysis.md)** | 🔧 技术层 | 了解 7 个核心模块功能、接口依赖、集成策略 |
+| **[Rust 实现](./rust_implementation.md)** | 📚 参考资料 | rust_llm_server & rustBindings 技术深度解析 |
+
+---
+
+## 🎯 快速查找
+
+### 我想了解...
+
+| 需求 | 推荐文档 |
+|------|---------|
+| 为什么需要 Serving Agent？ | [project_vision.md - 第 1 节](./project_vision.md#1-问题陈述) |
+| Serving Agent 和 PyPTO 的关系？ | [project_vision.md - 第 2.2 节](./project_vision.md#22-与-pypto-的协同关系) |
+| 成功后是什么样子？ | [project_vision.md - 第 2.3 节](./project_vision.md#23-预期效果) |
+| 需要哪些外部依赖？ | [project_vision.md - 第 5.2 节](./project_vision.md#52-外部能力诉求与协作边界) |
+| 如何集成 PyPTO 等模块？ | [modules_analysis.md](./modules_analysis.md) |
+| 参考的 Rust 实现？ | [rust_implementation.md](./rust_implementation.md) |
+
+---
+
+## 🔗 相关仓库
+
+### 核心依赖（必须）
+
+| 模块 | 仓库 | Serving Agent 使用方式 |
+|------|------|----------------------|
+| **pypto** | [hw-native-sys/pypto](https://github.com/hw-native-sys/pypto) | IR 构建、算子代码生成 |
+| **simpler** | [hw-native-sys/simpler](https://github.com/hw-native-sys/simpler) | 单机运行时 API |
+| **pypto_runtime_distributed** | [hengliao1972/pypto_runtime_distributed](https://github.com/hengliao1972/pypto_runtime_distributed) | 多机分布式通信 |
+
+### 可选依赖
+
+| 模块 | 仓库 | 说明 |
 |------|------|------|
-| **[实施计划](./serving_agent_implementation_plan.md)** | 项目架构、5 个阶段的实施路线图、交付物 | 了解项目全貌 |
-| **[模块分析](./modules_analysis_and_serving_agent_requirements.md)** | 7 个核心模块功能分析、接口依赖、AI 友好性要求 | 集成各模块接口 |
-| **[Rust 服务器分析](./rust_llm_server_analysis.md)** | rust_llm_server & rustBindings 技术深度解析 | 参考 Rust 实现 |
+| **pypto-lib** | [hw-native-sys/pypto-lib](https://github.com/hw-native-sys/pypto-lib) | Tensor 函数库（可复用） |
 
-## 相关仓库
+### 参考实现
 
-| 模块 | 仓库 | Serving Agent 是否需要接口 |
-|------|------|---------------------------|
-| pypto | [hw-native-sys/pypto](https://github.com/hw-native-sys/pypto) | ✅ 必须（IR 构建、代码生成） |
-| simpler | [hw-native-sys/simpler](https://github.com/hw-native-sys/simpler) | ✅ 必须（单机运行时） |
-| pypto_runtime_distributed | [hengliao1972/pypto_runtime_distributed](https://github.com/hengliao1972/pypto_runtime_distributed) | ✅ 必须（多机分布式） |
-| pypto-lib | [hw-native-sys/pypto-lib](https://github.com/hw-native-sys/pypto-lib) | ⚠️ 可选（复用 tensor 函数） |
-| pypto-serving | [hengliao1972/pypto-serving](https://github.com/hengliao1972/pypto-serving) | ⚠️ 参考架构 |
-| pto-isa | [PTO-ISA/pto-isa](https://github.com/PTO-ISA/pto-isa) | ❌ 链接静态库 |
-| PTOAS | [zhangstevenunity/PTOAS](https://github.com/zhangstevenunity/PTOAS) | ❌ 间接使用（通过 pypto）|
+| 仓库 | 说明 |
+|------|------|
+| [xwhu/pypto_workspace](https://github.com/xwhu/pypto_workspace) | 包含 rustBindings 和 rust_llm_server 的首版实现 |
 
-参考实现：[xwhu/pypto_workspace](https://github.com/xwhu/pypto_workspace)，其中 rustBindings 和 rust_llm_server 为使用Rust对接aclnn的首版serving实现，详见[Rust 服务器分析](./rust_llm_server_analysis.md)。
+---
+
+## 📝 文档维护
+
+### 命名规范
+
+采用 **描述型命名**（清晰优先）：
+- `project_vision.md` - 项目愿景
+- `modules_analysis.md` - 模块分析
+- `rust_implementation.md` - Rust 实现分析
+
+### 文档分类
+
+- 🎯 **战略层**：project_vision.md - 为什么做、做成什么样
+- 🔧 **技术层**：modules_analysis.md - 如何集成、接口设计
+- 📚 **参考资料**：rust_implementation.md - 现有实现分析
+
+### 添加新文档
+
+1. 使用描述型命名（2-4 个词）
+2. 在本文档中添加条目
+3. 根据文档类型归入战略层/技术层/参考资料
+4. 更新"快速查找"索引（如适用）
+
+---
+
+**最后更新**: 2026-03-26

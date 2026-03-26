@@ -1,83 +1,47 @@
 # Serving Agent
 
-根据配置自动生成轻量级 LLM 推理服务框架。
+**配置驱动的 LLM 推理服务代码生成工具 —— PyPTO 应用闭环的完成者**
 
-## 项目概述
+---
 
-**Serving Agent** 是一个代码生成工具，能够根据部署需求（硬件、模型等）自动生成轻量级的 LLM 推理服务框架。
+## 简介
 
-### 核心特点
+Serving Agent 是一个配置驱动的代码生成工具，能够根据部署需求（硬件、模型、并行策略等）自动生成轻量级、可运行的 LLM 推理服务。
 
-- **PyPTO 唯一后端**：统一的 Tile 级抽象，代码生成量 < 10000 行
-- **目标硬件**：Ascend NPU (910B)
-- **支持部署**：单机多卡、多机分布式
-- **AI 友好**：代码量可控，便于 AI 理解和修改
+**核心特点**：
+- 🚀 **配置驱动**：通过 TOML/JSON 配置生成服务，无需编写代码
+- 🤖 **AI 友好**：目标代码量约 10000 行以内，结构清晰
+- 🔧 **灵活组装**：支持多种并行策略（TP、PP、TP+PP）和部署场景
+- ⚡ **PyPTO 原生**：深度集成 PyPTO 算子，充分发挥其性能优势
 
-## 架构设计
+> 💡 **详细说明**：查看 [项目愿景](docs/vision.md) 了解问题定义、预期效果和与 PyPTO 的协同关系
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Phase 1: 需求分析与规划                                     │
-│  用户配置 (TOML/JSON) → 配置验证 → 部署计划生成               │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│  Phase 2: 代码生成与组装                                     │
-│  模板引擎 → 组件选择 → 项目组装（Cargo.toml, build.rs）      │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│  Phase 3: 验证与部署                                         │
-│  构建测试 → 集成验证 → 部署包生成                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 目录结构
-
-```
-serving_agent/
-├── config/              # 配置解析和验证
-│   ├── __init__.py
-│   ├── parser.py        # TOML/JSON 解析
-│   └── validator.py     # 配置验证
-├── templates/           # Jinja2 模板
-│   ├── core/            # 核心服务器组件
-│   ├── backends/        # 计算后端变体
-│   ├── parallel/        # 并行策略
-│   └── communication/   # 通信层
-├── assembler/           # 项目组装器
-│   ├── __init__.py
-│   └── builder.py       # 组装 Rust 项目
-├── pypto_codegen/       # PyPTO 内核生成器
-│   ├── __init__.py
-│   └── qwen3_kernelgen.py
-├── cli.py               # 命令行接口
-└── __init__.py
-```
+---
 
 ## 快速开始
 
-### 安装依赖
+### 安装
 
 ```bash
-# Python 依赖
-pip install -e .
+# 克隆仓库
+git clone https://github.com/your-org/serving-agent.git
+cd serving-agent
 
-# Rust 依赖（生成的项目需要）
-# Rust 1.70+
+# 安装 Python 依赖
+pip install -e .
 ```
 
-### 使用示例
+### 使用
 
 ```bash
-# 生成推理服务
-serving-agent generate --config config.toml --output ./my_server
+# 1. 验证配置
+$ serving-agent validate --config config.toml
 
-# 验证配置
-serving-agent validate --config config.toml
+# 2. 生成推理服务
+$ serving-agent generate --config config.toml --output ./my_server
 
-# 构建项目
-serving-agent build --project ./my_server
+# 3. 构建项目
+$ serving-agent build --project ./my_server
 ```
 
 ### 配置示例
@@ -90,7 +54,6 @@ weights_path = "/data/models/qwen3-8b"
 
 [hardware]
 backend_type = "pypto"
-device_id = 0
 npus_per_node = 8
 nodes = 2
 
@@ -104,64 +67,73 @@ batching = "continuous"
 quantization = "none"
 ```
 
+---
+
 ## 技术依赖
 
-### 必需依赖
+### 核心依赖
 
-- **Python** 3.9+
-- **Rust** 1.70+
-- **PyPTO** modules/pypto（唯一后端）
+| 依赖 | 说明 | 用途 |
+|------|------|------|
+| **PyPTO** | Tile 级算子生成 | 生成高性能 Ascend 内核 |
+| **simpler** | 运行时 API | 设备管理、内存分配 |
+| **pypto_runtime_distributed** | 分布式通信 | 单机多卡、多机通信 |
+| **Ascend CANN** 7.0+ | NPU 驱动 | 硬件抽象 |
 
-### 环境依赖
+### 开发环境
 
-- **Ascend CANN** 7.0+
-- **HCCL**（多卡需要）
+- **Python** 3.9+（代码生成）
+- **Rust** 1.70+（生成的服务）
+- **Ascend NPU** 910B（目标硬件）
+
+---
+
+## 项目结构
+
+```
+serving_agent/
+├── config/              # 配置解析和验证
+│   ├── parser.py        # TOML/JSON 解析
+│   └── validator.py     # 配置验证
+├── templates/           # Jinja2 代码生成模板
+│   ├── core/            # 核心服务组件
+│   ├── backends/        # 计算后端（PyPTO）
+│   ├── parallel/        # 并行策略（TP/PP）
+│   └── communication/   # 通信层（单机/多机）
+├── assembler/           # 项目组装器
+│   └── builder.py       # 组装 Rust 项目
+├── pypto_codegen/       # PyPTO 内核生成接口
+└── cli.py               # 命令行工具
+```
+
+---
 
 ## 相关仓库
 
-| 模块 | 仓库 | 是否需要接口 |
-|------|------|-------------|
-| pypto | [hw-native-sys/pypto](https://github.com/hw-native-sys/pypto) | ✅ 必须 |
-| simpler | [hw-native-sys/simpler](https://github.com/hw-native-sys/simpler) | ✅ 必须 |
-| pypto_runtime_distributed | [hengliao1972/pypto_runtime_distributed](https://github.com/hengliao1972/pypto_runtime_distributed) | ✅ 必须 |
-| pypto-lib | [hw-native-sys/pypto-lib](https://github.com/hw-native-sys/pypto-lib) | ⚠️ 可选 |
+| 仓库 | 关系 | 说明 |
+|------|------|------|
+| [hw-native-sys/pypto](https://github.com/hw-native-sys/pypto) | 🔴 **必须** | PyPTO 核心，算子生成 |
+| [hw-native-sys/simpler](https://github.com/hw-native-sys/simpler) | 🔴 **必须** | 运行时 API |
+| [hengliao1972/pypto_runtime_distributed](https://github.com/hengliao1972/pypto_runtime_distributed) | 🔴 **必须** | 分布式通信 |
+| [hw-native-sys/pypto-lib](https://github.com/hw-native-sys/pypto-lib) | 🟡 可选 | PyPTO 标准库 |
 
-## 开发路线图
-
-### Phase 1: PyPTO 后端基础（第 1-4 周）
-- PyPTO Ascend 后端实现
-- Qwen3-0.6B 推理验证
-
-### Phase 2: 分布式通信基础（第 5-8 周）
-- PyPTO 通信原语集成
-- 单机多卡 TP 支持
-
-### Phase 3: Serving Agent 原型（第 9-12 周）
-- 配置解析器
-- 模板引擎
-- CLI 工具
-
-### Phase 4: 多机分布式支持（第 13-16 周）
-- 跨机器 Pipeline/Tensor Parallel
-- TCP 通信层
-
-### Phase 5: PyPTO 性能优化（第 17-20 周）
-- 完整内核套件
-- 性能基准测试
+---
 
 ## 文档
 
-详细文档请查看 `docs/` 目录：
+- [项目愿景](docs/project_vision.md) - 问题定义、预期效果、与 PyPTO 的协同关系
+- [模块分析](docs/modules_analysis.md) - 依赖模块分析
+- [Rust 实现](docs/rust_implementation.md) - Rust 服务器参考实现
+- [文档导航](docs/README.md) - 查看所有设计文档
 
-- [README](docs/README.md) - 文档导航
-- [实施计划](docs/serving_agent_implementation_plan.md) - 完整实施计划
-- [模块分析](docs/modules_analysis_and_serving_agent_requirements.md) - 依赖模块分析
-- [Rust 服务器分析](docs/rust_llm_server_analysis.md) - 参考实现分析
+---
 
 ## 许可证
 
-MIT License
+Apache License 2.0
+
+---
 
 ## 联系方式
 
-项目相关问题请在 Issue 中提出。
+项目相关问题请在 [Issue](https://github.com/your-org/serving-agent/issues) 中提出。
