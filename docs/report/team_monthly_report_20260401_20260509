@@ -1,0 +1,192 @@
+# Sheet 1: 总体目标
+统计周期,2026-04-01 ~ 2026-05-09
+统计仓库,"pypto-lib, pypto, pto-isa, simpler"
+统计人员,"王成照, 杨耀东, 吴治锋, 刘旭, 段诗锦, 郑左贺, 方竟志"
+总体目标,推进 Qwen3 / DeepSeek V3.2 / V4 模型推理在 PyPTO 上的端到端落地，完善编译器前端 IR 与 codegen，扩展 simpler 运行时和 ISA 仿真能力，搭建 LLM serving 基础设施。
+
+# Sheet 2: 关键进展
+序号,关键进展,负责人,相关 PR/Commits
+1,DeepSeek V3.2 / V4 decode 全栈实现,杨耀东、段诗锦、刘旭、王成照,"pypto-lib #117, #119, #150, #157, #170, #174, #183, #197, #202, #206, #207, #220, #225, #230, #233, #234, #240"
+2,Qwen3 14B/32B decode 推理与 serving,刘旭、杨耀东、郑左贺,"pypto-lib #85, #87, #90, #99, #104, #131, #132, #139, #141, #160, #169, #176, #179, #190, #212, #214, #223, #231"
+3,PyPTO LLM serving 脚手架与权重缓存,刘旭,"pypto-lib #160, #214"
+4,torch_codegen 跨核运行时与调试通路,吴治锋,"pypto #1060, #1100, #1117, #1142"
+5,tile.batch_matmul / tensor IR 扩展,王成照、吴治锋,"pypto #838, #897, #1036, #1060"
+6,simpler 运行时 SO 加载与 AICPU launch 接口,方竟志,"simpler #513, #537, #720（仍 OPEN/CLOSED 未合入）"
+7,DeepSeek-V4 sparse attention INT8 例子,段诗锦,"pypto-lib #220, #225, #240"
+8,DeepSeek-V4 hc_pre / hc_post decode 链路,杨耀东,"pypto-lib #202, #206, #207"
+
+# Sheet 3: 关键风险
+序号,风险项,负责人,状态,相关 Issue/PR
+1,Fix singleton-batch matmul accumulator layout,王成照,OPEN,pypto #1237 （2026-04-30创建，仍 OPEN）
+2,Update DeepSeek v4 precision checks,杨耀东,OPEN,pypto-lib #237 （2026-05-08创建，仍 OPEN）
+3,golden: integrate pre-runtime pass IR validation into runner,吴治锋,OPEN,pypto-lib #162 （2026-04-23创建，仍 OPEN）
+4,Add: cross-class @pl.jit.inline example,郑左贺,OPEN,pypto-lib #239 （2026-05-09创建，仍 OPEN）
+5,feat(deepseek-v4): build compressor kernel CV-split (Phase 3),郑左贺,OPEN,pypto-lib #215 （2026-05-06创建，仍 OPEN）
+6,Fix: add tile.neg to kRowMajorOps for ACC-to-VEC layout conversion,郑左贺,OPEN,pypto #1308 （2026-05-07创建，仍 OPEN）
+7,MoE multi-chip experts example,方竟志,OPEN,simpler #720 （2026-05-08创建，仍 OPEN）
+8,Feat/issue 356 aicpu launch new interface,方竟志,OPEN,simpler #537 （2026-04-13创建，仍 OPEN）
+9,[Pass Bug] FlattenTileNdTo2D inserts Vec/Acc moves for singleton batch_matmul_acc init,王成照,OPEN,pypto issue #1235
+10,[a2a3] Silent miscompile: column-strided slice of wide 2D tensor fed into pl.matmul produces wrong results (only row 0 correct),王成照,OPEN,pypto issue #1212
+11,"[Bug] a2a3 FP32 matmul with b_trans=True gives wrong results for [16,16384] x [32,16384].T",杨耀东,OPEN,pypto issue #1213
+12,[Bug] Intermittent softmax_prepare_ptoas precision mismatch in paged-attention test (n_blocks=2),吴治锋,OPEN,pypto issue #1045
+13,[Pass Bug] matmul accumulator → neg blayout propagation failure,郑左贺,OPEN,pypto issue #1309
+14,[Pass Bug] tpop ordering + cross-core move errors with 2-step unrolling and persistent Cube accumulators,郑左贺,OPEN,pypto issue #1195
+
+# Sheet 4: 详细进展
+工作流,子任务项,进展,负责人,状态,相关 PR,相关 Issue,仓库
+模型推理,王成照 - 模型推理子任务,合入 2 个 PR，OPEN 0，CLOSED 0：DSv4: implement decode MoE router orchestration body; Add DeepSeek-V4 o_proj fused kernel example,王成照,COMPLETED,"pypto-lib#233, pypto-lib#197",pypto-lib#196,pypto-lib
+模型推理,杨耀东 - 模型推理子任务,合入 14 个 PR，OPEN 1，CLOSED 5：Update DeepSeek v4 precision checks; Update DeepSeek V4 decode projections; Update: inline DeepSeek V4 SWA decode 等20项,杨耀东,IN PROGRESS,"pypto-lib#237, pypto-lib#234, pypto-lib#230, pypto-lib#207, pypto-lib#206, pypto-lib#202, pypto-lib#180, pypto-lib#174 等共20个","pypto-lib#188, pypto-lib#126, pypto-lib#100",pypto-lib
+模型推理,刘旭 - 模型推理子任务,合入 15 个 PR，OPEN 0，CLOSED 2：Fix Qwen3 14B decode golden stability; Optimize Qwen3 14B decode tiling; llm: add serving cli and cache kernel weights 等17项,刘旭,CLOSED,"pypto-lib#231, pypto-lib#223, pypto-lib#214, pypto-lib#212, pypto-lib#190, pypto-lib#179, pypto-lib#176, pypto-lib#169 等共17个","pypto-lib#81, pypto#1172, pypto#980, simpler#678",pypto-lib
+模型推理,段诗锦 - 模型推理子任务,合入 7 个 PR，OPEN 0，CLOSED 1：Add INT8 support to DSv4 decode sparse attention Stage B; Add DeepSeek-V4 decode sparse attention with grouped output ; Add DeepSeek-V4 decode sparse attention example (compress_ra 等8项,段诗锦,CLOSED,"pypto-lib#240, pypto-lib#225, pypto-lib#209, pypto-lib#192, pypto-lib#187, pypto-lib#159, pypto-lib#158, pypto-lib#120",,pypto-lib
+模型推理,郑左贺 - 模型推理子任务,合入 2 个 PR，OPEN 1，CLOSED 0：feat(deepseek-v4): build compressor kernel CV-split (Phase 3; Add: GEMM + elementwise fusion example and apply to Qwen3 de; Refactor: Qwen3 decode with 3-scope architecture and TILELET,郑左贺,IN PROGRESS,"pypto-lib#215, pypto-lib#139, pypto-lib#99","pypto-lib#198, pypto-lib#156, pypto-lib#84, pypto-lib#83, pypto-lib#82",pypto-lib
+模型推理,方竟志 - 模型推理子任务,合入 0 个 PR，OPEN 1，CLOSED 0：MoE multi-chip experts example,方竟志,IN PROGRESS,simpler#720,,simpler
+编译器前端,王成照 - 编译器前端子任务,合入 2 个 PR，OPEN 1，CLOSED 1：Fix singleton-batch matmul accumulator layout; feat(torch_codegen): cross-core split + scheduler for tpush/; feat(ir): implement tile.batch_matmul operation 等4项,王成照,IN PROGRESS,"pypto#1237, pypto#1107, pypto#897, pypto#838","pypto#1235, pypto#1212, pypto#837",pypto
+编译器前端,吴治锋 - 编译器前端子任务,合入 5 个 PR，OPEN 1，CLOSED 1：golden: integrate pre-runtime pass IR validation into runner; feat(debug): improve torch_codegen pass validation workflow; feat(debug): add cross-core runtime support to torch_codegen 等7项,吴治锋,IN PROGRESS,"pypto-lib#162, pypto#1142, pypto#1117, pypto#1100, pypto#1060, pypto#1036, pypto#851",pypto#1289,"pypto, pypto-lib"
+编译器前端,郑左贺 - 编译器前端子任务,合入 0 个 PR，OPEN 2，CLOSED 1：Add: cross-class @pl.jit.inline example; Fix: add tile.neg to kRowMajorOps for ACC-to-VEC layout conv; fix(ir): propagate parent strides to InCore params from slic,郑左贺,IN PROGRESS,"pypto-lib#239, pypto#1308, pypto#1038","pypto#1309, pypto#1195, pypto#1194, pypto#1189, pypto#1037","pypto, pypto-lib"
+Runtime与性能分析,吴治锋 - Runtime与性能分析子任务,合入 1 个 PR，OPEN 0，CLOSED 0：test(runtime): Add st for row_expand and col_expand,吴治锋,COMPLETED,pypto#940,,pypto
+Runtime与性能分析,方竟志 - Runtime与性能分析子任务,合入 0 个 PR，OPEN 1，CLOSED 1：Feat/issue 356 aicpu launch new interface; Add: memfd-based SO loading for all runtimes,方竟志,IN PROGRESS,"simpler#537, simpler#513",,simpler
+基础设施,段诗锦 - 基础设施子任务,合入 1 个 PR，OPEN 0，CLOSED 0：Feat: enhance golden validation error output with mismatch d,段诗锦,COMPLETED,simpler#550,,simpler
+其他,杨耀东 - 其他子任务,合入 2 个 PR，OPEN 0，CLOSED 0：Keep scope3 score buffers local to the current batch; fix wrong implementation of rms-norm,杨耀东,COMPLETED,"pypto-lib#183, pypto-lib#77","pypto#1325, pypto#1073, pto-isa#79, pto-isa#51",pypto-lib
+其他,刘旭 - 其他子任务,合入 0 个 PR，OPEN 0，CLOSED 2：fix: preserve singleton broadcast dims in SplitVectorKernel; fix: preserve compatibility with old-style A2A3 TPipe local ,刘旭,CLOSED,"pypto#976, pto-isa#68",pto-isa#67,"pto-isa, pypto"
+其他,郑左贺 - 其他子任务,合入 1 个 PR，OPEN 0，CLOSED 1：Update: fuse Stage 0-1 and Stage 6-7 with chunked_loop_optim; Owen Scope3: Initial Implementation and Numerical Correctnes,郑左贺,CLOSED,"pypto-lib#105, pypto-lib#79",,pypto-lib
+
+# Sheet 5: 人员工作量汇总
+姓名,GitHub ID,主力工作流,main 分支 commits,MERGED PRs,OPEN PRs,CLOSED PRs,创建 Issues,OPEN Issues,CLOSED Issues,覆盖仓库
+王成照,zhaozhaozz,编译器前端/模型推理,4,4,1,1,4,2,2,"pypto, pypto-lib"
+杨耀东,high-cloud,模型推理/其他,18,16,1,5,15,4,11,"pto-isa, pypto, pypto-lib"
+吴治锋,wuzhf9,编译器前端/Runtime与性能分析,6,6,1,1,5,2,3,"pto-isa, pypto, pypto-lib"
+刘旭,ndleslx,模型推理/其他,15,15,0,4,11,2,9,"pto-isa, pypto, pypto-lib, simpler"
+段诗锦,sjduan,模型推理/基础设施,7,8,0,1,1,0,1,"pypto, pypto-lib, simpler"
+郑左贺,bumble0918,模型推理/编译器前端,3,3,3,2,14,5,9,"pypto, pypto-lib"
+方竟志,puddingfjz,Runtime与性能分析/模型推理,0,0,2,1,0,0,0,simpler
+
+# Appendix: 每人 PR 详单
+姓名,仓库,PR#,标题,状态,创建日期,合入日期,工作流
+王成照,pypto,1237,Fix singleton-batch matmul accumulator layout,OPEN,2026-04-30,,编译器前端
+王成照,pypto,1107,feat(torch_codegen): cross-core split + scheduler for tpush/tpop ops,CLOSED,2026-04-21,,编译器前端
+王成照,pypto,897,feat(ir): implement tile.batch_matmul operation,MERGED,2026-04-08,2026-04-17,编译器前端
+王成照,pypto,838,fix(ir): add K-dimension validation to tensor.matmul type deduction,MERGED,2026-04-02,2026-04-02,编译器前端
+王成照,pypto-lib,233,DSv4: implement decode MoE router orchestration body,MERGED,2026-05-08,2026-05-08,模型推理
+王成照,pypto-lib,197,Add DeepSeek-V4 o_proj fused kernel example,MERGED,2026-04-28,2026-04-30,模型推理
+杨耀东,pypto-lib,237,Update DeepSeek v4 precision checks,OPEN,2026-05-08,,模型推理
+杨耀东,pypto-lib,234,Update DeepSeek V4 decode projections,MERGED,2026-05-08,2026-05-08,模型推理
+杨耀东,pypto-lib,230,Update: inline DeepSeek V4 SWA decode,MERGED,2026-05-07,2026-05-08,模型推理
+杨耀东,pypto-lib,207,Tighten DeepSeek V4 hc_pre precision,MERGED,2026-04-30,2026-04-30,模型推理
+杨耀东,pypto-lib,206,Add DeepSeek V4 decode hc_post,MERGED,2026-04-30,2026-05-07,模型推理
+杨耀东,pypto-lib,202,Add DeepSeek-V4 HC pre decode example,MERGED,2026-04-29,2026-04-29,模型推理
+杨耀东,pypto-lib,183,Keep scope3 score buffers local to the current batch,MERGED,2026-04-27,2026-04-27,其他
+杨耀东,pypto-lib,180,Update DeepSeek scope123 scheduling,CLOSED,2026-04-25,,模型推理
+杨耀东,pypto-lib,174,Update DeepSeek scope123 inputs,MERGED,2026-04-25,2026-04-25,模型推理
+杨耀东,pypto-lib,170,Add DeepSeek V3.2 INT8 quant decode example,MERGED,2026-04-24,2026-04-25,模型推理
+杨耀东,pypto-lib,157,Fuse DeepSeek V3.2 decode front scope1-3 kernel,MERGED,2026-04-22,2026-04-22,模型推理
+杨耀东,pypto-lib,155,Fuse DeepSeek V3.2 decode front scope1-3 kernel,CLOSED,2026-04-22,,模型推理
+杨耀东,pypto-lib,150,Add DeepSeek V3.2 decode front scope2,MERGED,2026-04-21,2026-04-22,模型推理
+杨耀东,pypto-lib,134,Fix DeepSeek scope1 cache prep outputs,MERGED,2026-04-20,2026-04-21,模型推理
+杨耀东,pypto-lib,123,Fix DeepSeek scope1 q_norm outputs,MERGED,2026-04-17,2026-04-17,模型推理
+杨耀东,pypto-lib,119,Add: DeepSeek V3.2 decode front scope1 example,MERGED,2026-04-16,2026-04-16,模型推理
+杨耀东,pypto-lib,114,Optimize Qwen3 decode scope2 SV path,CLOSED,2026-04-15,,模型推理
+杨耀东,pypto-lib,112,Add fused QK RoPE Qwen3 decode example,CLOSED,2026-04-15,,模型推理
+杨耀东,pypto-lib,94,add qwen3 scope3 tile helper example,CLOSED,2026-04-10,,模型推理
+杨耀东,pypto-lib,92,[codex] remove init stages in qwen3 scope3,MERGED,2026-04-10,2026-04-10,模型推理
+杨耀东,pypto-lib,90,Qwen3 Scope3 refactor with performance improvements,MERGED,2026-04-10,2026-04-10,模型推理
+杨耀东,pypto-lib,77,fix wrong implementation of rms-norm,MERGED,2026-04-08,2026-04-08,其他
+吴治锋,pypto,1142,feat(debug): improve torch_codegen pass validation workflow,MERGED,2026-04-23,2026-04-23,编译器前端
+吴治锋,pypto,1117,feat(debug): add cross-core runtime support to torch_codegen,MERGED,2026-04-22,2026-04-22,编译器前端
+吴治锋,pypto,1100,fix(debug): handle nested calls and boundary padding in torch_codegen,MERGED,2026-04-21,2026-04-21,编译器前端
+吴治锋,pypto,1060,feat(ir): add tensor.expand_clone lowering and broadcast coverage,MERGED,2026-04-16,2026-04-17,编译器前端
+吴治锋,pypto,1036,"fix(ir): align row_expand(target, row_vec) with col_expand",MERGED,2026-04-15,2026-04-16,编译器前端
+吴治锋,pypto,940,test(runtime): Add st for row_expand and col_expand,MERGED,2026-04-09,2026-04-09,Runtime与性能分析
+吴治锋,pypto,851,feat(ir): Added tensor.expand_clone ops,CLOSED,2026-04-02,,编译器前端
+吴治锋,pypto-lib,162,golden: integrate pre-runtime pass IR validation into runner,OPEN,2026-04-23,,编译器前端
+刘旭,pto-isa,68,fix: preserve compatibility with old-style A2A3 TPipe local slot arg,CLOSED,2026-04-12,,其他
+刘旭,pypto,976,fix: preserve singleton broadcast dims in SplitVectorKernel,CLOSED,2026-04-12,,其他
+刘旭,pypto-lib,231,Fix Qwen3 14B decode golden stability,MERGED,2026-05-07,2026-05-08,模型推理
+刘旭,pypto-lib,223,Optimize Qwen3 14B decode tiling,MERGED,2026-05-07,2026-05-07,模型推理
+刘旭,pypto-lib,214,llm: add serving cli and cache kernel weights,MERGED,2026-05-06,2026-05-06,模型推理
+刘旭,pypto-lib,212,Add Qwen3 32B decode matmul variants,MERGED,2026-04-30,2026-04-30,模型推理
+刘旭,pypto-lib,190,Optimize Qwen3 14B decode kernels,MERGED,2026-04-27,2026-04-29,模型推理
+刘旭,pypto-lib,179,Use actual batch for Qwen3 runtime kernels,MERGED,2026-04-25,2026-04-27,模型推理
+刘旭,pypto-lib,176,Use canonical Qwen3 kernel builders,MERGED,2026-04-25,2026-04-25,模型推理
+刘旭,pypto-lib,169,Support padded Qwen3 batch generation,MERGED,2026-04-24,2026-04-25,模型推理
+刘旭,pypto-lib,160,Add PyPTO LLM inference scaffold,MERGED,2026-04-23,2026-04-23,模型推理
+刘旭,pypto-lib,153,Update: align qwen3 14B decode with paged attention,MERGED,2026-04-22,2026-04-22,模型推理
+刘旭,pypto-lib,141,Add Qwen3 14B decode implementations,MERGED,2026-04-21,2026-04-21,模型推理
+刘旭,pypto-lib,132,Merge Qwen3 decode tile scopes into one example,MERGED,2026-04-20,2026-04-20,模型推理
+刘旭,pypto-lib,131,Update: tile decode-back combine buffer access,MERGED,2026-04-20,2026-04-20,模型推理
+刘旭,pypto-lib,117,Add golden path and a2a3 fixes for DeepSeek V3.2 decode-back,MERGED,2026-04-16,2026-04-16,模型推理
+刘旭,pypto-lib,106,Update: make Qwen3 decode inputs deterministic,CLOSED,2026-04-14,,模型推理
+刘旭,pypto-lib,104,Update: chunk Qwen3 decode scope1 projections,MERGED,2026-04-13,2026-04-13,模型推理
+刘旭,pypto-lib,102,Optimize Qwen3 scope1 decode performance,CLOSED,2026-04-12,,模型推理
+段诗锦,pypto-lib,240,Add INT8 support to DSv4 decode sparse attention Stage B,MERGED,2026-05-09,2026-05-09,模型推理
+段诗锦,pypto-lib,225,Add DeepSeek-V4 decode sparse attention with grouped output projection,MERGED,2026-05-07,2026-05-08,模型推理
+段诗锦,pypto-lib,209,"Add DeepSeek-V4 decode sparse attention example (compress_ratio {0, 4, 128})",MERGED,2026-04-30,2026-05-06,模型推理
+段诗锦,pypto-lib,192,Refactor: align pl.at/slice/parallel writing format in DeepSeek decode front,MERGED,2026-04-28,2026-04-28,模型推理
+段诗锦,pypto-lib,187,Add DeepSeek V3.2 decode front kernel,MERGED,2026-04-27,2026-04-27,模型推理
+段诗锦,pypto-lib,159,Add DeepSeek V3.2 decode front scope2 stage4 Hadamard kernel,CLOSED,2026-04-23,,模型推理
+段诗锦,pypto-lib,158,Add DeepSeek V3.2 decode front scope4 kernel,MERGED,2026-04-23,2026-04-23,模型推理
+段诗锦,pypto-lib,120,Add golden path and a2a3 fixes for DeepSeek V3.2 prefill-back,MERGED,2026-04-16,2026-04-20,模型推理
+段诗锦,simpler,550,Feat: enhance golden validation error output with mismatch details,MERGED,2026-04-14,2026-04-14,基础设施
+郑左贺,pypto,1308,Fix: add tile.neg to kRowMajorOps for ACC-to-VEC layout conversion,OPEN,2026-05-07,,编译器前端
+郑左贺,pypto,1038,fix(ir): propagate parent strides to InCore params from slice operations,CLOSED,2026-04-15,,编译器前端
+郑左贺,pypto-lib,239,Add: cross-class @pl.jit.inline example,OPEN,2026-05-09,,编译器前端
+郑左贺,pypto-lib,215,feat(deepseek-v4): build compressor kernel CV-split (Phase 3),OPEN,2026-05-06,,模型推理
+郑左贺,pypto-lib,139,Add: GEMM + elementwise fusion example and apply to Qwen3 decode,MERGED,2026-04-21,2026-04-21,模型推理
+郑左贺,pypto-lib,105,Update: fuse Stage 0-1 and Stage 6-7 with chunked_loop_optimizer in Scope 3,CLOSED,2026-04-14,,其他
+郑左贺,pypto-lib,99,Refactor: Qwen3 decode with 3-scope architecture and TILELET rename,MERGED,2026-04-10,2026-04-10,模型推理
+郑左贺,pypto-lib,79,Owen Scope3: Initial Implementation and Numerical Correctness on  CV-seperated mode,MERGED,2026-04-08,2026-04-09,其他
+方竟志,simpler,720,MoE multi-chip experts example,OPEN,2026-05-08,,模型推理
+方竟志,simpler,537,Feat/issue 356 aicpu launch new interface,OPEN,2026-04-13,,Runtime与性能分析
+方竟志,simpler,513,Add: memfd-based SO loading for all runtimes,CLOSED,2026-04-10,,Runtime与性能分析
+
+# Appendix: 每人 Issue 详单
+姓名,仓库,Issue#,标题,状态,创建日期,关闭日期,标签,工作流
+王成照,pypto,1235,[Pass Bug] FlattenTileNdTo2D inserts Vec/Acc moves for singleton batch_matmul_acc init,OPEN,2026-04-30,,bug,编译器前端
+王成照,pypto,1212,[a2a3] Silent miscompile: column-strided slice of wide 2D tensor fed into pl.matmul produces wrong results (only row 0 correct),OPEN,2026-04-28,,bug,编译器前端
+王成照,pypto,837,fix(ir): tensor.matmul type deduction missing K-dimension validation,CLOSED,2026-04-02,2026-04-02,bug,编译器前端
+王成照,pypto-lib,196,Add DeepSeek-V4 o_proj kernel example to pypto-lib,CLOSED,2026-04-28,2026-04-30,enhancement,模型推理
+杨耀东,pto-isa,79,[Bug] A2A3 pto.textract rejects row extraction from loc=vec after LEFT_RIGHT split,CLOSED,2026-04-14,2026-05-08,bug,其他
+杨耀东,pto-isa,51,A2A3 TRSQRT on FP32 vector path shows large accuracy loss compared with sqrt+div,CLOSED,2026-04-08,2026-04-14,,其他
+杨耀东,pypto,1325,[New Op] Support interleave/deinterleave operations,OPEN,2026-05-09,,,其他
+杨耀东,pypto,1304,[Bug] @pl.jit.inline helpers with multiple returns fail under @pl.jit,CLOSED,2026-05-07,2026-05-09,,编译器前端
+杨耀东,pypto,1302,[Bug] Nested @pl.jit.inline calls fail with Unsupported function call,CLOSED,2026-05-07,2026-05-09,,编译器前端
+杨耀东,pypto,1230,[Bug] a2a3 rejects row-broadcast weight slices lowered as 16x1 ColMajor Vec TLOAD from ND GM,OPEN,2026-04-30,,,编译器前端
+杨耀东,pypto,1213,"[Bug] a2a3 FP32 matmul with b_trans=True gives wrong results for [16,16384] x [32,16384].T",OPEN,2026-04-28,,bug,编译器前端
+杨耀东,pypto,1209,[Bug] tensor transpose followed by slice/reshape reads incorrect layout,CLOSED,2026-04-28,2026-04-29,,编译器前端
+杨耀东,pypto,1184,[Bug] Orchestration codegen skips aliases for tuple-returned InOut tensors,OPEN,2026-04-27,,,编译器前端
+杨耀东,pypto,1138,[Feature] Add support for pl.abs on tensor,CLOSED,2026-04-23,2026-04-24,enhancement,编译器前端
+杨耀东,pypto,1086,codegen: local Out -> InOut promotion serializes independent q_proj tile writes,CLOSED,2026-04-20,2026-04-23,,编译器前端
+杨耀东,pypto,1073,Q latent projection blocks serialize due to loop-carried tensor assemble,CLOSED,2026-04-17,2026-04-20,,其他
+杨耀东,pypto-lib,188,[Feature] 实现 DeepSeek V4 decode hc_pre draft kernel,CLOSED,2026-04-27,2026-05-08,,模型推理
+杨耀东,pypto-lib,126,[Feature] 跟踪 deepseek_v3_2_decode_front 在 A2A3 平台上跑通,CLOSED,2026-04-17,2026-04-28,,模型推理
+杨耀东,pypto-lib,100,[Feature] qwen3_32b_decode_scope2_mixed.py on A3/A5 platforms with good precision & performance,CLOSED,2026-04-10,2026-04-25,,模型推理
+吴治锋,pto-isa,88,"[Bug] A5: expand_clone(d2) has numerical mismatch between simulator and hardware for [B, M, 1]",CLOSED,2026-04-17,2026-04-17,bug,ISA与CPU仿真器
+吴治锋,pypto,1289,[New Op] Add tensor/tile cos and sin APIs with pass-time lowering to primitive ops,OPEN,2026-05-07,,"enhancement,new-operation",编译器前端
+吴治锋,pypto,1045,[Bug] Intermittent softmax_prepare_ptoas precision mismatch in paged-attention test (n_blocks=2),OPEN,2026-04-16,,bug,模型推理
+吴治锋,pypto,883,[Feature] Align row_expand signature with col_expand (tensor/tile),CLOSED,2026-04-07,2026-04-16,enhancement,其他
+吴治锋,pypto,824,[Bug] FormatShape prints ExprPtr addresses in error messages,CLOSED,2026-04-01,2026-04-01,,其他
+刘旭,pto-isa,67,A2A3 TPipe template is incompatible with ptoas 0.24 old-style LocalSlotNum emission,CLOSED,2026-04-12,2026-04-15,,其他
+刘旭,pypto,1233,Frontend batch_matmul lowering emits invalid ND reshape/slice for 4-D matmul operands,OPEN,2026-04-30,,,编译器前端
+刘旭,pypto,1172,qwen3_14b_decode --max-seq logs ConstInt errors despite passing,OPEN,2026-04-25,,,模型推理
+刘旭,pypto,1113,[Bug] CORE_GROUP name_hint is not reflected in merged swimlane JSON,CLOSED,2026-04-21,2026-04-23,bug,Runtime与性能分析
+刘旭,pypto,1068,ConvertTensorToTileOps lowers slice->reshape->matmul input to Vec instead of Mat,CLOSED,2026-04-17,2026-04-17,,编译器前端
+刘旭,pypto,1067,ConvertTensorToTileOps lowers slice->reshape->matmul input to Vec instead of Mat,CLOSED,2026-04-17,2026-04-17,,编译器前端
+刘旭,pypto,980,[Bug] ExpandMixedKernel rejects bidirectional cross-core tiles in qwen3_32b_decode_scope1,CLOSED,2026-04-12,2026-04-14,,模型推理
+刘旭,pypto,977,[Pass Bug] ExpandMixedKernel drops nested loop-carried accumulator init defs in split AIC body,CLOSED,2026-04-12,2026-04-14,,编译器前端
+刘旭,pypto,975,[Pass Bug]SplitVectorKernel fails on singleton broadcast tile loads in split AIV kernels,CLOSED,2026-04-12,2026-04-13,,编译器前端
+刘旭,pypto-lib,81,[Perf] Split scope1 projection accumulation in Qwen3 decode example,CLOSED,2026-04-09,2026-04-25,,模型推理
+刘旭,simpler,678,Simpler MaxChildren failure for 2-layer Qwen3-14B decode callable,CLOSED,2026-04-25,2026-04-27,,模型推理
+段诗锦,pypto,946,[Feature] Support user-defined input/output tensors for kernels,CLOSED,2026-04-10,2026-04-14,,其他
+郑左贺,pypto,1309,[Pass Bug] matmul accumulator → neg blayout propagation failure,OPEN,2026-05-07,,bug,编译器前端
+郑左贺,pypto,1195,[Pass Bug] tpop ordering + cross-core move errors with 2-step unrolling and persistent Cube accumulators,OPEN,2026-04-27,,bug,编译器前端
+郑左贺,pypto,1194,[Pass Bug] tpop ordering violation with pl.parallel in mixed pl.at block,CLOSED,2026-04-27,2026-05-07,bug,编译器前端
+郑左贺,pypto,1189,[Feature] Add orchestration-level collective communication operators to PyPTO compiler,OPEN,2026-04-27,,enhancement,编译器前端
+郑左贺,pypto,1037,[Pass Bug]  OptimizeOrchTensors pass doesn't propagate correct strides for sliced input tensors,CLOSED,2026-04-15,2026-04-16,bug,编译器前端
+郑左贺,pypto,1020,[Bug] InterchangeChunkLoops pass incorrectly moves statements outside InCore scope,CLOSED,2026-04-14,2026-04-16,bug,编译器前端
+郑左贺,pypto,1010,[Bug] chunked_loop_optimizer causes performance degradation in matmul+eltwise case,CLOSED,2026-04-14,2026-04-16,bug,编译器前端
+郑左贺,pypto,941,[Bug] pl.assemble() hoists nested tensor operations (add/cast) outside incore block,CLOSED,2026-04-09,2026-04-10,bug,编译器前端
+郑左贺,pypto,919,[Bug] PyPTO compiler silently ignores statements outside incore/auto_incore blocks without warnings,CLOSED,2026-04-09,2026-04-10,bug,编译器前端
+郑左贺,pypto-lib,198,[Feature] Implement KV Compressor of DeepSeek-V4,OPEN,2026-04-28,,enhancement,模型推理
+郑左贺,pypto-lib,156,[Feature] [Tracking] End-to-end bring-up of DeepSeek-V3.2 distributed inference with DP2+TP8+EP,OPEN,2026-04-22,,enhancement,模型推理
+郑左贺,pypto-lib,84,[Bug] Precision tracking for qwen3_32b_decode_scope3.py in Mixed mode,CLOSED,2026-04-09,2026-04-09,,模型推理
+郑左贺,pypto-lib,83,[Bug] Precision tracking for qwen3_32b_decode_scope3.py in CV-seperated mode,CLOSED,2026-04-09,2026-04-10,,模型推理
+郑左贺,pypto-lib,82,[Bug] Precision tracking for qwen3_32b_decode_scope3.py in Mixed mode,CLOSED,2026-04-09,2026-04-10,,模型推理

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PyPTO 项目团队月报 — 2026.04.01 ~ 2026.05.09</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --text-secondary: #5a5a6e;
+    --border: #e2e8f0;
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --warning: #d97706;
+    --warning-bg: #fef3c7;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --info: #0891b2;
+    --info-bg: #cffafe;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: white;
+    padding: 40px 32px;
+    border-radius: 16px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.2);
+  }
+  .header h1 { margin: 0 0 12px; font-size: 28px; font-weight: 700; }
+  .header .meta { display: flex; flex-wrap: wrap; gap: 20px; opacity: 0.9; font-size: 14px; }
+  .header .meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* Nav */
+  .nav {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 28px; padding: 12px;
+    background: var(--card); border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav a {
+    padding: 8px 16px; border-radius: 8px;
+    text-decoration: none; color: var(--text-secondary);
+    font-size: 14px; font-weight: 500;
+    transition: all 0.2s;
+  }
+  .nav a:hover, .nav a.active {
+    background: var(--primary-light); color: var(--primary);
+  }
+
+  /* Section */
+  .section {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .section h2 {
+    margin: 0 0 20px; font-size: 20px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 12px; border-bottom: 2px solid var(--border);
+  }
+  .section h2 .icon { font-size: 24px; }
+
+  /* Goal box */
+  .goal-box {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 4px solid var(--primary);
+    padding: 20px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .stat-card .value { font-size: 32px; font-weight: 700; color: var(--primary); }
+  .stat-card .label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: #f8fafc;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #f8fafc; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Status badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-merged { background: var(--success-bg); color: var(--success); }
+  .badge-completed { background: var(--success-bg); color: var(--success); }
+  .badge-closed { background: #f3f4f6; color: #6b7280; }
+  .badge-open { background: var(--danger-bg); color: var(--danger); }
+  .badge-in-progress { background: var(--warning-bg); color: var(--warning); }
+  .badge-bug { background: var(--danger-bg); color: var(--danger); }
+  .badge-feature { background: var(--primary-light); color: var(--primary); }
+
+  /* Risk level */
+  .risk-high { border-left: 3px solid var(--danger); padding-left: 12px; }
+  .risk-medium { border-left: 3px solid var(--warning); padding-left: 12px; }
+  .risk-low { border-left: 3px solid var(--info); padding-left: 12px; }
+
+  /* Person tag */
+  .person-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 6px;
+    background: #f1f5f9; font-size: 12px; font-weight: 500;
+    margin: 2px;
+  }
+  .person-tag .gh { color: var(--text-secondary); font-size: 11px; }
+
+  /* Flow tag */
+  .flow-tag {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+    background: #ede9fe; color: #7c3aed;
+  }
+
+  /* Scrollable table */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+
+  /* PR/Issue link */
+  .pr-link {
+    color: var(--primary); text-decoration: none;
+    font-family: monospace; font-size: 12px;
+  }
+  .pr-link:hover { text-decoration: underline; }
+
+  /* Section anchors */
+  .anchor { scroll-margin-top: 80px; }
+
+  /* Compact text */
+  .compact { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container { padding: 12px; }
+    .header { padding: 24px 20px; }
+    .header h1 { font-size: 22px; }
+    .section { padding: 20px; }
+    th, td { padding: 8px 10px; font-size: 12px; }
+    .nav { gap: 6px; padding: 8px; }
+    .nav a { padding: 6px 10px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>PyPTO 项目团队月报</h1>
+    <div class="meta">
+      <span>📅 统计周期：2026-04-01 ~ 2026-05-09</span>
+      <span>📦 仓库：pypto-lib, pypto, pto-isa, simpler</span>
+      <span>👥 统计人员：7 人</span>
+    </div>
+  </div>
+
+  <!-- 总体目标 -->
+  <div class="section anchor" id="overview">
+    <h2><span class="icon">📋</span>总体目标</h2>
+    <div class="goal-box">
+      推进 <strong>Qwen3 / DeepSeek V3.2 / V4</strong> 模型推理在 PyPTO 上的端到端落地，完善编译器前端 IR 与 codegen，扩展 simpler 运行时和 ISA 仿真能力，搭建 LLM serving 基础设施。
+    </div>
+  </div>
+
+  <!-- 关键进展 -->
+  <div class="section anchor" id="highlights">
+    <h2><span class="icon">🚀</span>关键进展</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:40px">#</th><th>关键进展</th><th>负责人</th><th>相关 PR/Commits</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>DeepSeek V3.2 / V4 decode 全栈实现</strong><br><span class="compact">decode front scope1-4、hc_pre/hc_post、INT8 quant、sparse attention 等核心链路全部打通</span></td>
+            <td>
+              <span class="person-tag">杨耀东 <span class="gh">high-cloud</span></span>
+              <span class="person-tag">段诗锦 <span class="gh">sjduan</span></span>
+              <span class="person-tag">刘旭 <span class="gh">ndleslx</span></span>
+              <span class="person-tag">王成照 <span class="gh">zhaozhaozz</span></span>
+            </td>
+            <td class="compact">pypto-lib #117, #119, #150, #157, #170, #174, #183, #197, #202, #206, #207, #220, #225, #230, #233, #234, #240</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>Qwen3 14B/32B decode 推理与 serving</strong><br><span class="compact">scope1-3 完整实现、matmul variants、paged attention 对齐、serving CLI</span></td>
+            <td>
+              <span class="person-tag">刘旭 <span class="gh">ndleslx</span></span>
+              <span class="person-tag">杨耀东 <span class="gh">high-cloud</span></span>
+              <span class="person-tag">郑左贺 <span class="gh">bumble0918</span></span>
+            </td>
+            <td class="compact">pypto-lib #85, #87, #90, #99, #104, #131, #132, #139, #141, #160, #169, #176, #179, #190, #212, #214, #223, #231</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>PyPTO LLM serving 脚手架与权重缓存</strong><br><span class="compact">serving CLI 上线，kernel 权重缓存机制实现</span></td>
+            <td><span class="person-tag">刘旭 <span class="gh">ndleslx</span></span></td>
+            <td class="compact">pypto-lib #160, #214</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>torch_codegen 跨核运行时与调试通路</strong><br><span class="compact">cross-core runtime、validation workflow、nested call / boundary padding 处理</span></td>
+            <td><span class="person-tag">吴治锋 <span class="gh">wuzhf9</span></span></td>
+            <td class="compact">pypto #1060, #1100, #1117, #1142</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><strong>tile.batch_matmul / tensor IR 扩展</strong><br><span class="compact">新算子实现 + 类型推断修复 + row_expand 对齐</span></td>
+            <td>
+              <span class="person-tag">王成照 <span class="gh">zhaozhaozz</span></span>
+              <span class="person-tag">吴治锋 <span class="gh">wuzhf9</span></span>
+            </td>
+            <td class="compact">pypto #838, #897, #1036, #1060</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><strong>DeepSeek-V4 sparse attention INT8 例子</strong><br><span class="compact">sparse attention Stage B INT8 支持、compress_ratio 多档位</span></td>
+            <td><span class="person-tag">段诗锦 <span class="gh">sjduan</span></span></td>
+            <td class="compact">pypto-lib #220, #225, #240</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><strong>DeepSeek-V4 hc_pre / hc_post decode 链路</strong><br><span class="compact">hc_pre 精度 tuning、hc_post 实现</span></td>
+            <td><span class="person-tag">杨耀东 <span class="gh">high-cloud</span></span></td>
+            <td class="compact">pypto-lib #202, #206, #207</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><strong>simpler 运行时 SO 加载与 AICPU launch 接口</strong><br><span class="compact">memfd-based SO loading（未合入）、AICPU launch 新接口开发中</span></td>
+            <td><span class="person-tag">方竟志 <span class="gh">puddingfjz</span></span></td>
+            <td class="compact">simpler #513, #537, #720</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 关键风险 -->
+  <div class="section anchor" id="risks">
+    <h2><span class="icon">⚠️</span>关键风险</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:40px">#</th><th>风险项</th><th>负责人</th><th>状态</th><th>相关 Issue/PR</th></tr>
+        </thead>
+        <tbody>
+          <tr class="risk-high">
+            <td>1</td>
+            <td>Fix singleton-batch matmul accumulator layout</td>
+            <td><span class="person-tag">王成照 <span class="gh">zhaozhaozz</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto #1237</a> <span class="compact">(2026-04-30)</span></td>
+          </tr>
+          <tr class="risk-high">
+            <td>2</td>
+            <td>Update DeepSeek v4 precision checks</td>
+            <td><span class="person-tag">杨耀东 <span class="gh">high-cloud</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto-lib #237</a> <span class="compact">(2026-05-08)</span></td>
+          </tr>
+          <tr class="risk-high">
+            <td>3</td>
+            <td>golden: integrate pre-runtime pass IR validation into runner</td>
+            <td><span class="person-tag">吴治锋 <span class="gh">wuzhf9</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto-lib #162</a> <span class="compact">(2026-04-23)</span></td>
+          </tr>
+          <tr class="risk-high">
+            <td>4</td>
+            <td>Add: cross-class @pl.jit.inline example</td>
+            <td><span class="person-tag">郑左贺 <span class="gh">bumble0918</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto-lib #239</a> <span class="compact">(2026-05-09)</span></td>
+          </tr>
+          <tr class="risk-high">
+            <td>5</td>
+            <td>feat(deepseek-v4): build compressor kernel CV-split (Phase 3)</td>
+            <td><span class="person-tag">郑左贺 <span class="gh">bumble0918</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto-lib #215</a> <span class="compact">(2026-05-06)</span></td>
+          </tr>
+          <tr class="risk-high">
+            <td>6</td>
+            <td>Fix: add tile.neg to kRowMajorOps for ACC-to-VEC layout conversion</td>
+            <td><span class="person-tag">郑左贺 <span class="gh">bumble0918</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto #1308</a> <span class="compact">(2026-05-07)</span></td>
+          </tr>
+          <tr class="risk-medium">
+            <td>7</td>
+            <td>MoE multi-chip experts example</td>
+            <td><span class="person-tag">方竟志 <span class="gh">puddingfjz</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">simpler #720</a> <span class="compact">(2026-05-08)</span></td>
+          </tr>
+          <tr class="risk-medium">
+            <td>8</td>
+            <td>Feat/issue 356 aicpu launch new interface</td>
+            <td><span class="person-tag">方竟志 <span class="gh">puddingfjz</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">simpler #537</a> <span class="compact">(2026-04-13)</span></td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>[Pass Bug] FlattenTileNdTo2D inserts Vec/Acc moves for singleton batch_matmul_acc init</td>
+            <td><span class="person-tag">王成照 <span class="gh">zhaozhaozz</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto issue #1235</a></td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>[a2a3] Silent miscompile: column-strided slice of wide 2D tensor fed into pl.matmul produces wrong results</td>
+            <td><span class="person-tag">王成照 <span class="gh">zhaozhaozz</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto issue #1212</a></td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>[Bug] a2a3 FP32 matmul with b_trans=True gives wrong results</td>
+            <td><span class="person-tag">杨耀东 <span class="gh">high-cloud</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto issue #1213</a></td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>[Bug] Intermittent softmax_prepare_ptoas precision mismatch in paged-attention test</td>
+            <td><span class="person-tag">吴治锋 <span class="gh">wuzhf9</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto issue #1045</a></td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>[Pass Bug] matmul accumulator → neg blayout propagation failure</td>
+            <td><span class="person-tag">郑左贺 <span class="gh">bumble0918</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto issue #1309</a></td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td>[Pass Bug] tpop ordering + cross-core move errors with 2-step unrolling and persistent Cube accumulators</td>
+            <td><span class="person-tag">郑左贺 <span class="gh">bumble0918</span></span></td>
+            <td><span class="badge badge-open">OPEN</span></td>
+            <td><a class="pr-link" href="#">pypto issue #1195</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 详细进展 -->
+  <div class="section anchor" id="details">
+    <h2><span class="icon">📊</span>详细进展</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>工作流</th>
+            <th>子任务项</th>
+            <th>进展</th>
+            <th>负责人</th>
+            <th>状态</th>
+            <th>相关 PR</th>
+            <th>相关 Issue</th>
+            <th>仓库</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="flow-tag">模型推理</span></td>
+            <td><strong>王成照</strong> — DeepSeek-V4 o_proj / MoE router</td>
+            <td>合入 2 PR，开发 MoE router orchestration body 和 o_proj fused kernel</td>
+            <td><span class="person-tag">王成照</span></td>
+            <td><span class="badge badge-completed">COMPLETED</span></td>
+            <td class="compact">pypto-lib #233, #197</td>
+            <td class="compact">pypto-lib #196</td>
+            <td>pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">模型推理</span></td>
+            <td><strong>杨耀东</strong> — DeepSeek V3.2/V4 decode 全栈</td>
+            <td>合入 14 PR，OPEN 1，CLOSED 5；覆盖 decode front scope1-4、hc_pre/hc_post、INT8 quant、SWA、precision tuning</td>
+            <td><span class="person-tag">杨耀东</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">#237, #234, #230, #207, #206, #202, #180, #174 等 20 个</td>
+            <td class="compact">pypto-lib #188, #126, #100</td>
+            <td>pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">模型推理</span></td>
+            <td><strong>刘旭</strong> — Qwen3 14B/32B decode + serving</td>
+            <td>合入 15 PR，CLOSED 2；覆盖 decode kernels、tiling、serving CLI、权重缓存、golden stability</td>
+            <td><span class="person-tag">刘旭</span></td>
+            <td><span class="badge badge-completed">COMPLETED</span></td>
+            <td class="compact">#231, #223, #214, #212, #190, #179, #176, #169 等 17 个</td>
+            <td class="compact">pypto-lib #81, pypto #1172/#980, simpler #678</td>
+            <td>pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">模型推理</span></td>
+            <td><strong>段诗锦</strong> — DeepSeek sparse attention + prefill-back</td>
+            <td>合入 7 PR，CLOSED 1；sparse attention INT8 Stage B、grouped output projection、prefill-back a2a3 fixes</td>
+            <td><span class="person-tag">段诗锦</span></td>
+            <td><span class="badge badge-completed">COMPLETED</span></td>
+            <td class="compact">pypto-lib #240, #225, #209, #192, #187, #159, #158, #120</td>
+            <td class="compact">—</td>
+            <td>pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">模型推理</span></td>
+            <td><strong>郑左贺</strong> — Qwen3 fusion + DeepSeek-V4 compressor</td>
+            <td>合入 2 PR，OPEN 1；GEMM+elementwise fusion、3-scope 架构重构、compressor kernel CV-split 开发中</td>
+            <td><span class="person-tag">郑左贺</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">pypto-lib #215, #139, #99</td>
+            <td class="compact">pypto-lib #198, #156, #84/#83/#82</td>
+            <td>pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">模型推理</span></td>
+            <td><strong>方竟志</strong> — MoE multi-chip experts</td>
+            <td>OPEN 1 PR，开发中</td>
+            <td><span class="person-tag">方竟志</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">simpler #720</td>
+            <td class="compact">—</td>
+            <td>simpler</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">编译器前端</span></td>
+            <td><strong>王成照</strong> — tile.batch_matmul / matmul 类型推断</td>
+            <td>合入 2 PR，OPEN 1，CLOSED 1；batch_matmul 实现、singleton batch accumulator layout 修复中</td>
+            <td><span class="person-tag">王成照</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">pypto #1237, #1107, #897, #838</td>
+            <td class="compact">pypto #1235, #1212, #837</td>
+            <td>pypto</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">编译器前端</span></td>
+            <td><strong>吴治锋</strong> — torch_codegen 调试工具链</td>
+            <td>合入 5 PR，OPEN 1，CLOSED 1；cross-core runtime、validation workflow、nested call / boundary padding、pre-runtime IR validation 开发中</td>
+            <td><span class="person-tag">吴治锋</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">pypto-lib #162, pypto #1142, #1117, #1100, #1060, #1036, #851</td>
+            <td class="compact">pypto #1289</td>
+            <td>pypto, pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">编译器前端</span></td>
+            <td><strong>郑左贺</strong> — tile.neg / stride 传播 / @pl.jit.inline</td>
+            <td>OPEN 2 PR，CLOSED 1；tile.neg kRowMajorOps 修复、parent strides 传播、cross-class @pl.jit.inline 示例开发中</td>
+            <td><span class="person-tag">郑左贺</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">pypto-lib #239, pypto #1308, #1038</td>
+            <td class="compact">pypto #1309, #1195, #1194, #1189, #1037</td>
+            <td>pypto, pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">Runtime</span></td>
+            <td><strong>吴治锋</strong> — row_expand / col_expand runtime ST</td>
+            <td>合入 1 PR，runtime system test 完成</td>
+            <td><span class="person-tag">吴治锋</span></td>
+            <td><span class="badge badge-completed">COMPLETED</span></td>
+            <td class="compact">pypto #940</td>
+            <td class="compact">—</td>
+            <td>pypto</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">Runtime</span></td>
+            <td><strong>方竟志</strong> — AICPU launch / memfd SO loading</td>
+            <td>OPEN 1 PR，CLOSED 1；AICPU launch 新接口开发中，memfd SO loading 未合入</td>
+            <td><span class="person-tag">方竟志</span></td>
+            <td><span class="badge badge-in-progress">IN PROGRESS</span></td>
+            <td class="compact">simpler #537, #513</td>
+            <td class="compact">—</td>
+            <td>simpler</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">基础设施</span></td>
+            <td><strong>段诗锦</strong> — golden 验证错误输出增强</td>
+            <td>合入 1 PR；mismatch details 输出增强</td>
+            <td><span class="person-tag">段诗锦</span></td>
+            <td><span class="badge badge-completed">COMPLETED</span></td>
+            <td class="compact">simpler #550</td>
+            <td class="compact">—</td>
+            <td>simpler</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">其他</span></td>
+            <td><strong>杨耀东</strong> — scope3 score buffers / rms-norm 修复</td>
+            <td>合入 2 PR</td>
+            <td><span class="person-tag">杨耀东</span></td>
+            <td><span class="badge badge-completed">COMPLETED</span></td>
+            <td class="compact">pypto-lib #183, #77</td>
+            <td class="compact">pypto #1325/#1073, pto-isa #79/#51</td>
+            <td>pypto-lib</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">其他</span></td>
+            <td><strong>刘旭</strong> — SplitVectorKernel / TPipe 兼容性</td>
+            <td>CLOSED 2 PR；singleton broadcast dims、old-style TPipe compat</td>
+            <td><span class="person-tag">刘旭</span></td>
+            <td><span class="badge badge-closed">CLOSED</span></td>
+            <td class="compact">pypto #976, pto-isa #68</td>
+            <td class="compact">pto-isa #67</td>
+            <td>pto-isa, pypto</td>
+          </tr>
+          <tr>
+            <td><span class="flow-tag">其他</span></td>
+            <td><strong>郑左贺</strong> — Stage fusion / Scope3 initial</td>
+            <td>合入 1 PR，CLOSED 1；chunked_loop_optimizer Stage 0-1/6-7 fusion、Scope3 CV-separated initial</td>
+            <td><span class="person-tag">郑左贺</span></td>
+            <td><span class="badge badge-closed">CLOSED</span></td>
+            <td class="compact">pypto-lib #105, #79</td>
+            <td class="compact">—</td>
+            <td>pypto-lib</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 人员工作量汇总 -->
+  <div class="section anchor" id="summary">
+    <h2><span class="icon">👤</span>人员工作量汇总</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>GitHub ID</th>
+            <th>主力工作流</th>
+            <th style="text-align:center">main<br>commits</th>
+            <th style="text-align:center">MERGED<br>PRs</th>
+            <th style="text-align:center">OPEN<br>PRs</th>
+            <th style="text-align:center">CLOSED<br>PRs</th>
+            <th style="text-align:center">创建<br>Issues</th>
+            <th style="text-align:center">OPEN<br>Issues</th>
+            <th style="text-align:center">CLOSED<br>Issues</th>
+            <th>覆盖仓库</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>王成照</strong></td>
+            <td><code>zhaozhaozz</code></td>
+            <td>编译器前端 / 模型推理</td>
+            <td style="text-align:center"><strong>4</strong></td>
+            <td style="text-align:center"><span class="badge badge-merged">4</span></td>
+            <td style="text-align:center"><span class="badge badge-open">1</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">1</span></td>
+            <td style="text-align:center">4</td>
+            <td style="text-align:center"><span class="badge badge-open">2</span></td>
+            <td style="text-align:center"><span class="badge badge-completed">2</span></td>
+            <td class="compact">pypto, pypto-lib</td>
+          </tr>
+          <tr>
+            <td><strong>杨耀东</strong></td>
+            <td><code>high-cloud</code></td>
+            <td>模型推理 / 其他</td>
+            <td style="text-align:center"><strong>18</strong></td>
+            <td style="text-align:center"><span class="badge badge-merged">16</span></td>
+            <td style="text-align:center"><span class="badge badge-open">1</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">5</span></td>
+            <td style="text-align:center">15</td>
+            <td style="text-align:center"><span class="badge badge-open">4</span></td>
+            <td style="text-align:center"><span class="badge badge-completed">11</span></td>
+            <td class="compact">pto-isa, pypto, pypto-lib</td>
+          </tr>
+          <tr>
+            <td><strong>吴治锋</strong></td>
+            <td><code>wuzhf9</code></td>
+            <td>编译器前端 / Runtime</td>
+            <td style="text-align:center"><strong>6</strong></td>
+            <td style="text-align:center"><span class="badge badge-merged">6</span></td>
+            <td style="text-align:center"><span class="badge badge-open">1</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">1</span></td>
+            <td style="text-align:center">5</td>
+            <td style="text-align:center"><span class="badge badge-open">2</span></td>
+            <td style="text-align:center"><span class="badge badge-completed">3</span></td>
+            <td class="compact">pto-isa, pypto, pypto-lib</td>
+          </tr>
+          <tr>
+            <td><strong>刘旭</strong></td>
+            <td><code>ndleslx</code></td>
+            <td>模型推理 / 其他</td>
+            <td style="text-align:center"><strong>15</strong></td>
+            <td style="text-align:center"><span class="badge badge-merged">15</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">0</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">4</span></td>
+            <td style="text-align:center">11</td>
+            <td style="text-align:center"><span class="badge badge-open">2</span></td>
+            <td style="text-align:center"><span class="badge badge-completed">9</span></td>
+            <td class="compact">pto-isa, pypto, pypto-lib, simpler</td>
+          </tr>
+          <tr>
+            <td><strong>段诗锦</strong></td>
+            <td><code>sjduan</code></td>
+            <td>模型推理 / 基础设施</td>
+            <td style="text-align:center"><strong>7</strong></td>
+            <td style="text-align:center"><span class="badge badge-merged">8</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">0</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">1</span></td>
+            <td style="text-align:center">1</td>
+            <td style="text-align:center"><span class="badge badge-closed">0</span></td>
+            <td style="text-align:center"><span class="badge badge-completed">1</span></td>
+            <td class="compact">pypto, pypto-lib, simpler</td>
+          </tr>
+          <tr>
+            <td><strong>郑左贺</strong></td>
+            <td><code>bumble0918</code></td>
+            <td>模型推理 / 编译器前端</td>
+            <td style="text-align:center"><strong>3</strong></td>
+            <td style="text-align:center"><span class="badge badge-merged">3</span></td>
+            <td style="text-align:center"><span class="badge badge-open">3</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">2</span></td>
+            <td style="text-align:center">14</td>
+            <td style="text-align:center"><span class="badge badge-open">5</span></td>
+            <td style="text-align:center"><span class="badge badge-completed">9</span></td>
+            <td class="compact">pypto, pypto-lib</td>
+          </tr>
+          <tr>
+            <td><strong>方竟志</strong></td>
+            <td><code>puddingfjz</code></td>
+            <td>Runtime / 模型推理</td>
+            <td style="text-align:center"><strong>0</strong></td>
+            <td style="text-align:center"><span class="badge badge-closed">0</span></td>
+            <td style="text-align:center"><span class="badge badge-open">2</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">1</span></td>
+            <td style="text-align:center">0</td>
+            <td style="text-align:center"><span class="badge badge-closed">0</span></td>
+            <td style="text-align:center"><span class="badge badge-closed">0</span></td>
+            <td class="compact">simpler</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align:center; padding: 20px; color: var(--text-secondary); font-size: 12px;">
+    PyPTO Team Report — Generated from CSV data — 2026.04.01 ~ 2026.05.09
+  </div>
+</div>
+
+<script>
+  // Simple nav active state
+  const sections = document.querySelectorAll('.anchor');
+  const navLinks = document.querySelectorAll('.nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= 100) current = sec.id;
+    });
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
