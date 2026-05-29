@@ -151,7 +151,7 @@ MD 文件模板：
 
 文件生成后，告知用户：
 
-> 周报草稿已生成：`weekly-report-{YYYY-MM-DD}.md`
+> 周报草稿已生成：`docs/report/weekly-report-{YYYY-MM-DD}.md`
 > 请用 VS Code 打开查看，修改完成后回复"确认"，或告知需要调整的内容。
 > 确认后可选择是否发送到飞书群。
 
